@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <title id="page"></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <style>
+        :root {
+            /* Variabel Warna (Light Mode) */
+            --primary: #6366f1; --primary-dark: #4f46e5; --primary-light: #818cf8; --secondary: #f472b6;
+            --dark: #f8fafc; --darker: #e2e8f0; --light: #0f172a; --gray: #475569;
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444; /* Warna notif error */
+            --success-bg: #dcfce7; --warning-bg: #fef3c7; --danger-bg: #fee2e2; /* Background notif */
+            --success-text: #065f46; --warning-text: #92400e; --danger-text: #991b1b; /* Teks notif */
+            --card-bg: #ffffff; --card-hover: #f8fafc; --border-color: #e2e8f0;
+            --input-bg: #ffffff; --input-border: #cbd5e1; --input-focus-bg: #ffffff; --input-focus-border: var(--primary); --input-focus-shadow: rgba(99, 102, 241, 0.2);
+            --pre-bg: #f1f5f9; --pre-border: #e2e8f0; --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --header-height: 2.8rem;
+        }
+
+        body[data-theme="dark"] {
+            /* Variabel Warna (Dark Mode) */
+            --dark: #0f172a; --darker: #020617; --light: #f8fafc; --gray: #94a3b8;
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+            --success-bg: #052e16; --warning-bg: #422006; --danger-bg: #450a0a;
+            --success-text: #6ee7b7; --warning-text: #fcd34d; --danger-text: #fca5a5;
+            --card-bg: rgba(255, 255, 255, 0.05); --card-hover: rgba(255, 255, 255, 0.08); --border-color: rgba(255, 255, 255, 0.1);
+            --input-bg: rgba(255, 255, 255, 0.05); --input-border: rgba(255, 255, 255, 0.2); --input-focus-bg: rgba(255, 255, 255, 0.1); --input-focus-border: var(--primary-light); --input-focus-shadow: rgba(99, 102, 241, 0.2);
+            --pre-bg: rgba(0, 0, 0, 0.3); --pre-border: rgba(255, 255, 255, 0.1);
+        }
+
+        html { scroll-behavior: smooth; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            background: linear-gradient(135deg, var(--darker), var(--dark)); color: var(--light);
+            padding: calc(var(--header-height) + 1rem) 1rem 1rem 1rem; min-height: 100vh;
+            -webkit-tap-highlight-color: transparent; line-height: 1.5; transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .d-none { display: none !important; }
+
+        pre, #apiResponseContent { white-space: pre-wrap; word-wrap: break-word; overflow-x: auto; background: var(--pre-bg); color: var(--light); padding: 1rem; border-radius: 8px; max-height: 400px; font-size: 0.85rem; font-family: 'Consolas', 'Menlo', 'Courier New', monospace; border: 1px solid var(--pre-border); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+
+        /* Form Styles */
+        .modal-body form label { display: block; font-weight: 500; margin-bottom: 6px; color: var(--gray); font-size: 0.9rem; }
+        .modal-body form input { width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--light); margin-bottom: 1rem; font-size: 0.95rem; font-family: inherit; transition: var(--transition); }
+        .modal-body form input::placeholder { color: var(--gray); opacity: 0.7; }
+        .modal-body form input:focus { outline: none; border-color: var(--input-focus-border); background: var(--input-focus-bg); box-shadow: 0 0 0 3px var(--input-focus-shadow); }
+        #submitParamBtn { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; padding: 12px 24px; font-size: 0.95rem; border-radius: 8px; font-family: inherit; cursor: pointer; font-weight: 500; transition: var(--transition); width: 100%; margin-top: 0.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        #submitParamBtn:hover { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); }
+        #submitParamBtn:active { transform: translateY(0); }
+        .loading-spinner { margin: 1rem auto; border: 3px solid var(--card-bg); border-top: 3px solid var(--primary-light); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Modal Styles */
+        .modal { position: fixed; top: 0; left: 0; z-index: 100; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .modal.active { opacity: 1; pointer-events: all; }
+        .modal-dialog { width: 100%; max-width: 500px; background: var(--dark); border-radius: 12px; padding: 1.5rem; color: var(--light); overflow: auto; max-height: 90vh; transform: translateY(20px); transition: transform 0.3s ease, opacity 0.3s ease, background 0.3s ease; opacity: 0; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); border: 1px solid var(--border-color); }
+        .modal.active .modal-dialog { transform: translateY(0); opacity: 1; }
+        .modal-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; transition: border-color 0.3s ease; }
+        .modal-header h5 { font-size: 1.25rem; font-weight: 600; color: var(--light); }
+        .modal-header span { font-size: 0.9rem; color: var(--gray); display: block; margin-top: 4px; font-weight: 400; }
+        .btn-close { background: none; border: none; font-size: 1.5rem; line-height: 1; cursor: pointer; color: var(--gray); transition: var(--transition); padding: 0.25rem; border-radius: 4px; }
+        .btn-close:hover { color: var(--light); background: var(--card-hover); }
+
+        /* Modal Body */
+        .modal-body { padding: 0.5rem 0; }
+        .copy-section { display: none; justify-content: space-between; align-items: center; background-color: var(--pre-bg); border: 1px solid var(--border-color); padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem; overflow: auto; transition: var(--transition); }
+        .copy-section span { color: var(--gray); }
+        .copy-section.active { display: flex; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .copy-button { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 4px; font-weight: 500; font-family: inherit; }
+        .copy-button:hover { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); transform: translateY(-1px); }
+        .copy-button:active { transform: translateY(0); }
+        #copyResponseBtn { margin-bottom: 0.75rem; width: auto; padding: 6px 12px; font-size: 0.8rem; margin-left: auto; margin-right: 0; display: flex; }
+
+        /* Page Sections */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0; }
+        .hero { text-align: left; margin: 1.5rem 0 2rem 0; max-width: 800px; padding: 0 1rem; }
+        .hero-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.75rem; }
+        .hero h2 { font-size: 2.5rem; font-weight: 700; color: var(--primary); margin-bottom: 0; }
+        body[data-theme="dark"] .hero h2 { background: linear-gradient(90deg, #a5b4fc, #818cf8, #6366f1, #818cf8, #a5b4fc); background-size: 300% 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: gradient 8s ease infinite; }
+        @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .hero p { font-size: 1.1rem; color: var(--gray); margin-bottom: 1.5rem; line-height: 1.6; }
+
+        /* Scrolling Text (Sticky Header) */
+        .scrolling-text-container { position: fixed; top: 0; left: 0; width: 100%; z-index: 50; overflow: hidden; white-space: nowrap; height: var(--header-height); line-height: var(--header-height); background: var(--darker); box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: background 0.3s ease; }
+        .scrolling-text { display: inline-block; padding-left: 100%; animation: scroll-left 20s linear infinite, gradient-shift 10s ease infinite alternate; font-size: 1.2rem; font-weight: 500; background: linear-gradient(90deg, #ef4444, #f97316, #eab308, #84cc16, #22c55e, #14b8a6, #0ea5e9, #6366f1, #a855f7, #ec4899, #ef4444); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; }
+        @keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+        @keyframes gradient-shift { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+
+        /* Theme Switcher */
+        .theme-switcher { display: flex; align-items: center; gap: 0.75rem; color: var(--gray); }
+        .theme-switcher .fa-sun { color: #f59e0b; }
+        .theme-switcher .fa-moon { color: #818cf8; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--primary-light); transition: .4s; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(24px); }
+        .slider.round { border-radius: 34px; }
+        .slider.round:before { border-radius: 50%; }
+
+        /* Donation Section (Modal) */
+        #donationQR { max-width: 180px; height: 180px; border-radius: 8px; background: white; padding: 5px; margin: 0 auto 1rem auto; display: block; cursor: zoom-in; transition: transform 0.2s ease; }
+        #donationQR:hover { transform: scale(1.05); }
+        .donation-controls { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 1.5rem; }
+        #dontShowAgainCheckbox { width: 16px; height: 16px; accent-color: var(--primary); }
+        .donation-controls label { color: var(--gray); font-size: 0.9rem; cursor: pointer; margin-bottom: 0; }
+
+        /* Product Section */
+        .products-section { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 2rem; text-align: center; margin-left: 1rem; margin-right: 1rem; }
+        .products-section h2 { font-size: 1.5rem; font-weight: 600; color: var(--light); margin-bottom: 0.5rem; }
+        .products-section p { color: var(--gray); margin-bottom: 1.5rem; max-width: 600px; margin-left: auto; margin-right: auto; }
+        .products-section .play-button { text-decoration: none; align-self: center; margin-top: 0; display: inline-flex; justify-content: center; }
+
+        /* Stats */
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; padding: 0 1rem; }
+        .stats div { background: var(--card-bg); padding: 1.5rem 1rem; border-radius: 12px; text-align: center; transition: var(--transition); border: 1px solid var(--border-color); }
+        .stats div:hover { transform: translateY(-5px); background: var(--card-hover); box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); }
+        .stats h3 { font-size: 0.95rem; opacity: 0.8; color: var(--gray); margin-bottom: 0.5rem; font-weight: 500; }
+        .stats p { font-size: 1.5rem; font-weight: 700; color: var(--light); }
+        .content { padding: 0 1rem; }
+        .content h2 { font-size: 1.5rem; color: var(--light); margin-bottom: 1rem; font-weight: 600; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 1rem; overflow-x: auto; margin-bottom: 1.5rem; padding-bottom: 6px; scrollbar-width: none; }
+        .tabs::-webkit-scrollbar { display: none; height: 0; }
+        .tab { background: none; color: var(--gray); border: none; font-weight: 500; border-bottom: 2px solid transparent; padding: 0.75rem 0; cursor: pointer; font-size: 1rem; white-space: nowrap; transition: var(--transition); position: relative; font-family: inherit; }
+        .tab.active { color: var(--light); border-color: var(--primary); }
+        .tab:after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: var(--primary); transition: var(--transition); }
+        .tab:hover:not(.active):after { width: 100%; }
+
+        /* API Cards */
+        .api-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 3rem; }
+        .api-card { background: var(--card-bg); padding: 1.25rem; border-radius: 12px; transition: var(--transition); border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between; min-height: 180px; }
+        .api-card:hover { transform: translateY(-5px); background: var(--card-hover); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); border-color: var(--border-color); }
+        .api-info h3 { font-size: 1.2rem; color: var(--light); font-weight: 600; margin-bottom: 0.5rem; }
+        .api-info p { font-size: 0.95rem; color: var(--gray); margin-bottom: 1rem; line-height: 1.5; }
+        .status { background: rgba(16, 185, 129, 0.15); padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.75rem; color: var(--success); display: inline-block; font-weight: 500; margin-top: 0.5rem; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status.warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); border-color: rgba(245, 158, 11, 0.3); }
+        .status.danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
+        body[data-theme="light"] .status { border: 1px solid transparent; }
+        body[data-theme="light"] .status.warning { border: 1px solid transparent; }
+        body[data-theme="light"] .status.danger { border: 1px solid transparent; }
+        .play-button { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border: none; border-radius: 8px; padding: 0.75rem 1.5rem; color: white; cursor: pointer; font-size: 0.95rem; font-weight: 500; text-align: center; transition: var(--transition); align-self: flex-start; margin-top: 1rem; display: flex; align-items: center; gap: 8px; font-family: inherit; }
+        .play-button:hover { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+        .play-button:active { transform: translateY(0); }
+
+        /* Footer */
+        .footer { text-align: center; padding: 2rem 1rem 1rem 1rem; color: var(--gray); font-size: 0.9rem; border-top: 1px solid var(--border-color); margin-top: 2rem; transition: color 0.3s ease, border-color 0.3s ease; }
+        .contact { margin-top: 1rem; display: flex; justify-content: center; gap: 1rem; }
+        .contact a { color: var(--gray); text-decoration: none; font-size: 1.25rem; transition: var(--transition); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--card-bg); }
+        .contact a:hover { color: white; background: var(--primary); transform: translateY(-3px); box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3); }
+        body[data-theme="light"] .contact a:hover { color: white; }
+
+        /* Animations */
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeInUp 0.6s ease forwards; }
+
+        /* QR Lightbox */
+        .qr-lightbox-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; z-index: 101; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; cursor: zoom-out; }
+        .qr-lightbox-overlay.active { opacity: 1; pointer-events: all; }
+        #lightboxImage { max-width: 90vw; max-height: 90vh; width: auto; height: auto; background: white; padding: 10px; border-radius: 12px; cursor: default; transform: scale(0.8); transition: transform 0.3s ease; }
+        .qr-lightbox-overlay.active #lightboxImage { transform: scale(1); }
+
+        /* Music Controls FAB */
+        #musicFabContainer { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 90; display: none; }
+        #fabToggleBtn { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border: none; color: white; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: var(--transition); }
+        #fabToggleBtn:hover { transform: scale(1.05); box-shadow: 0 6px 16px rgba(0,0,0,0.25); }
+        #musicControlsExpanded { position: absolute; bottom: calc(100% + 0.75rem); right: 0; display: none; flex-direction: column; align-items: center; gap: 0.75rem; background: var(--card-bg); padding: 1rem; border-radius: 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.2); border: 1px solid var(--border-color); transition: opacity 0.3s ease, transform 0.3s ease; opacity: 0; transform: translateY(10px); pointer-events: none; }
+        #musicControlsExpanded.active { display: flex; opacity: 1; transform: translateY(0); pointer-events: auto; }
+        #musicControlsExpanded button { background: none; border: none; color: var(--gray); font-size: 1.1rem; cursor: pointer; padding: 0.3rem; line-height: 1; transition: color 0.2s ease, transform 0.2s ease; }
+        #musicControlsExpanded button:hover { color: var(--light); transform: scale(1.1); }
+        #volumeSlider { width: 100px; height: 5px; cursor: pointer; accent-color: var(--primary); margin-top: 0.2rem; }
+        #volumeSlider::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; background: var(--primary); border-radius: 50%; }
+        #volumeSlider::-moz-range-thumb { width: 14px; height: 14px; background: var(--primary); border-radius: 50%; border: none; }
+
+        /* Notification Style */
+        #notification { position: fixed; top: 0; left: 50%; transform: translateX(-50%) translateY(-120%); min-width: 250px; max-width: 90%; padding: 0.9rem 1.5rem; border-radius: 8px; background-color: var(--card-bg); color: var(--light); text-align: center; font-size: 0.95rem; font-weight: 500; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); z-index: 1000; transition: transform 0.4s ease-in-out, background-color 0.3s ease, color 0.3s ease; border: 1px solid var(--border-color); }
+        #notification.show { transform: translateX(-50%) translateY(20px); }
+        #notification.error { background-color: var(--danger-bg); color: var(--danger-text); border-color: var(--danger); }
+        #notification.success { background-color: var(--success-bg); color: var(--success-text); border-color: var(--success); }
+        #notification.warning { background-color: var(--warning-bg); color: var(--warning-text); border-color: var(--warning); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: calc(var(--header-height) + 0.5rem) 0.5rem 0.5rem 0.5rem; }
+            .hero { padding: 0 0.5rem; }
+            .products-section, .stats, .content, .footer { padding-left: 0.5rem; padding-right: 0.5rem; margin-left: 0; margin-right: 0;}
+            .hero h2 { font-size: 2rem; } .hero p { font-size: 1rem; } .api-list { grid-template-columns: 1fr; } .stats { grid-template-columns: repeat(2, 1fr); }
+            #musicFabContainer { bottom: 1rem; right: 1rem; }
+        }
+        @media (max-width: 480px) {
+            body { padding-top: calc(var(--header-height) + 0.5rem); }
+            .hero h2 { font-size: 1.75rem; }
+            .hero-header { flex-direction: column; align-items: center; gap: 1rem; } .hero-header h2 { text-align: center; }
+            .stats { grid-template-columns: 1fr; } .modal-dialog { padding: 1.25rem; }
+            .scrolling-text { font-size: 1rem; }
+            .api-list { grid-template-columns: 1fr; }
+            .products-section, .stats, .content, .footer { padding-left: 0.5rem; padding-right: 0.5rem; }
+            #musicFabContainer { bottom: 1rem; right: 1rem; }
+            #musicControlsExpanded { right: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="notification" class=""></div> <div class="scrolling-text-container">
+        <span class="scrolling-text">Selamat Datang di Rikishopreal Api! Semoga harimu menyenangkan!</span>
+    </div>
+
+    <div class="container">
+        <section class="hero fade-in">
+            <div class="hero-header">
+                <h2 id="apiTitle"></h2>
+                <div class="theme-switcher">
+                    <i class="fa-solid fa-sun"></i>
+                    <label class="switch">
+                        <input type="checkbox" id="theme-toggle-checkbox">
+                        <span class="slider round"></span>
+                    </label>
+                    <i class="fa-solid fa-moon"></i>
+                </div>
+            </div>
+            <p>Unlock the power of seamless integration with our comprehensive API suite. Access powerful endpoints with just a few clicks.</p>
+        </section>
+
+        <section class="products-section fade-in" style="animation-delay: 0.2s;">
+            <h2>Jelajahi Produk Kami</h2>
+            <p>Butuh script, layanan digital, atau produk premium lainnya? Kunjungi toko kami untuk melihat semua penawaran terbaik. Dapatkan solusi yang Anda butuhkan hari ini!</p>
+            <a href="https://toko.rikishop.my.id" target="_blank" rel="noopener noreferrer" class="play-button">
+                <i class="fa-solid fa-store"></i>
+                Kunjungi Toko
+            </a>
+        </section>
+
+        <section class="content">
+            <div class="tabs" id="tabs"></div>
+            <div id="api-list" class="api-list"></div>
+        </section>
+    </div>
+
+    <div class="modal" id="apiResponseModal">
+         <div class="modal-dialog">
+            <div class="modal-header">
+                <div><h5></h5><span></span></div>
+                <button id="btn-close" class="btn-close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="copy-section">
+                    <span id="copyEndpointText"></span>
+                    <button class="copy-button"><i class="far fa-copy"></i> Copy URL</button>
+                </div>
+                <form id="paramForm" style="margin-bottom: 0.5rem"></form>
+                <button id="submitParamBtn" type="button">Submit Request</button>
+                <div id="apiResponseLoading" class="loading-spinner" style="display: none;"></div>
+                <button id="copyResponseBtn" class="copy-button d-none"><i class="far fa-copy"></i> Copy Response</button>
+                <pre id="apiResponseContent" class="d-none"></pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="donationModal">
+        <div class="modal-dialog" style="max-width: 400px; text-align: center;">
+            <div class="modal-header" style="border-bottom: none; padding-bottom: 0.5rem; margin-bottom: 0;">
+                <h5 style="width: 100%; text-align: center; margin-bottom: 0;">Support Us</h5>
+            </div>
+            <div class="modal-body" style="padding-top: 0;">
+                <p style="color: var(--gray); margin-bottom: 1.5rem; font-size: 0.95rem;">Jika Anda merasa API ini bermanfaat, pertimbangkan untuk mendukung kami.</p>
+                <img src="/images/donasi-qr.png" alt="Donation QR Code" id="donationQR">
+                <div class="donation-controls">
+                    <input type="checkbox" id="dontShowAgainCheckbox" name="dontShowAgain">
+                    <label for="dontShowAgainCheckbox">Jangan tampilkan lagi</label>
+                </div>
+                <button id="continueBtn" class="play-button" style="width: 100%; margin-top: 1rem; justify-content: center;">
+                    Lanjut ke Website
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="qrLightbox" class="qr-lightbox-overlay">
+        <img src="" alt="Zoomed QR Code" id="lightboxImage">
+    </div>
+    <audio id="backgroundMusic" loop>
+        <source src="/images/music.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <div id="musicFabContainer" class="d-none">
+        <div id="musicControlsExpanded">
+             <button id="playPauseBtn" title="Play/Pause"><i class="fas fa-pause"></i></button>
+            <button id="muteBtn" title="Mute/Unmute"><i class="fas fa-volume-up"></i></button>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" title="Volume">
+        </div>
+        <button id="fabToggleBtn" title="Music Controls"><i class="fas fa-plus"></i></button>
+    </div>
+    <footer class="footer">
+         <div id="credits"></div>
+        <div class="contact">
+            <a id="githubLink" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+            <a id="whatsappLink" target="_blank" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+            <a id="youtubeLink" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        async function loadSettings() {
+            // --- Theme Switcher Logic ---
+            const themeToggle = document.getElementById("theme-toggle-checkbox");
+            const body = document.body;
+            function applyTheme(theme) { body.setAttribute("data-theme", theme); themeToggle.checked = (theme === "dark"); localStorage.setItem("theme", theme); }
+            themeToggle.addEventListener("change", () => { applyTheme(themeToggle.checked ? "dark" : "light"); });
+            const savedTheme = localStorage.getItem("theme");
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme) { applyTheme(savedTheme); } else if (prefersDark) { applyTheme("dark"); } else { applyTheme("light"); }
+
+            // --- Donation Modal Logic (Dengan Checkbox) ---
+            const donationModal = document.getElementById("donationModal");
+            const continueBtn = document.getElementById("continueBtn");
+            const dontShowCheckbox = document.getElementById("dontShowAgainCheckbox"); // Ambil checkbox
+            const hideDonation = localStorage.getItem("hideDonationModal"); // Cek localStorage
+
+            // --- Music Control Elements & FAB ---
+            const backgroundMusic = document.getElementById('backgroundMusic');
+            const musicFabContainer = document.getElementById('musicFabContainer');
+            const fabToggleBtn = document.getElementById('fabToggleBtn');
+            const musicControlsExpanded = document.getElementById('musicControlsExpanded');
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const muteBtn = document.getElementById('muteBtn');
+            const volumeSlider = document.getElementById('volumeSlider');
+            let musicStarted = false;
+
+            // Tampilkan modal HANYA jika belum diset untuk disembunyikan
+            if (!hideDonation) {
+                setTimeout(() => { donationModal.classList.add("active"); }, 500);
+            } else {
+                // Jika modal tidak ditampilkan, coba mainkan musik & tampilkan FAB langsung
+                if (backgroundMusic && !musicStarted) {
+                   // Coba mainkan (mungkin diblokir browser jika tanpa interaksi)
+                   backgroundMusic.play().then(() => {
+                       playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                       musicFabContainer.classList.remove('d-none');
+                       musicStarted = true;
+                   }).catch(error => {
+                       console.warn("Autoplay without interaction failed:", error); // Use warn
+                       // Tetap tampilkan FAB dengan ikon play
+                       playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                       musicFabContainer.classList.remove('d-none');
+                       musicStarted = true; // Tandai sudah dicoba
+                   });
+                }
+            }
+
+            continueBtn.addEventListener("click", () => {
+                // Simpan ke localStorage JIKA checkbox dicentang
+                if (dontShowCheckbox && dontShowCheckbox.checked) {
+                    localStorage.setItem("hideDonationModal", "true");
+                }
+                donationModal.classList.remove("active");
+
+                // Play Music & Show FAB (jika belum dimulai)
+                if (backgroundMusic && !musicStarted) {
+                   backgroundMusic.play().then(() => {
+                       playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                       musicFabContainer.classList.remove('d-none');
+                       musicStarted = true;
+                   }).catch(error => {
+                       console.error("Autoplay failed after interaction:", error);
+                       playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                       musicFabContainer.classList.remove('d-none');
+                       musicStarted = true;
+                   });
+                }
+            });
+
+            // --- FAB Toggle Logic ---
+            if (fabToggleBtn && musicControlsExpanded) {
+                fabToggleBtn.addEventListener('click', () => {
+                    const isExpanded = musicControlsExpanded.classList.toggle('active');
+                    fabToggleBtn.innerHTML = isExpanded ? '<i class="fas fa-times"></i>' : '<i class="fas fa-plus"></i>';
+                });
+            }
+
+            // --- Music Control Listeners ---
+            if (playPauseBtn && backgroundMusic) {
+                playPauseBtn.addEventListener('click', () => { if (backgroundMusic.paused) { backgroundMusic.play().catch(e=>console.error(e)); playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>'; } else { backgroundMusic.pause(); playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; } });
+                backgroundMusic.addEventListener('ended', () => { playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; });
+            }
+            if (muteBtn && backgroundMusic) {
+                muteBtn.addEventListener('click', () => { backgroundMusic.muted = !backgroundMusic.muted; muteBtn.innerHTML = backgroundMusic.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>'; });
+            }
+            if (volumeSlider && backgroundMusic) {
+                volumeSlider.value = backgroundMusic.volume;
+                volumeSlider.addEventListener('input', (e) => { backgroundMusic.volume = parseFloat(e.target.value); if (backgroundMusic.volume === 0 && !backgroundMusic.muted) { backgroundMusic.muted = true; muteBtn.innerHTML = '<i class="fas fa-volume-mute"></i>'; } else if (backgroundMusic.volume > 0 && backgroundMusic.muted) { backgroundMusic.muted = false; muteBtn.innerHTML = '<i class="fas fa-volume-up"></i>'; } });
+            }
+
+            // --- QR Lightbox Logic ---
+            const donationQR = document.getElementById("donationQR");
+            const qrLightbox = document.getElementById("qrLightbox");
+            const lightboxImage = document.getElementById("lightboxImage");
+            if (donationQR) { donationQR.addEventListener("click", () => { lightboxImage.src = donationQR.src; qrLightbox.classList.add("active"); }); }
+            if (qrLightbox) { qrLightbox.addEventListener("click", (e) => { if (e.target === qrLightbox) { qrLightbox.classList.remove("active"); } }); }
+
+            // --- Core API Logic Setup ---
+            const tabsContainer = document.getElementById("tabs");
+            const apiList = document.getElementById("api-list");
+            let currentEndpointPath = "";
+            let currentEndpointRequiresApiKey = false;
+            const settings = await fetch("/settings.json").then(res => res.json());
+            const apis = settings.endpoints;
+            const setContent = (id, property, value) => { const el = document.getElementById(id); if (el) el[property] = value; };
+            setContent("page", "textContent", settings.pagetitle || "");
+            setContent("credits", "textContent", `© ${new Date().getFullYear()} Powered by ${settings.creator || ""}`);
+            setContent("apiTitle", "textContent", settings.apititle || "");
+            document.getElementById("githubLink").href = settings.github || "#";
+            document.getElementById("whatsappLink").href = settings.whatsapp || "#";
+            document.getElementById("youtubeLink").href = settings.youtube || "#";
+
+            // Create Tabs
+            Object.keys(apis).forEach((key, index) => { const button = document.createElement("button"); button.className = `tab ${index === 0 ? "active" : ""}`; button.dataset.tab = key; button.innerText = key.charAt(0).toUpperCase() + key.slice(1); tabsContainer.appendChild(button); });
+
+            // Render API Cards Function
+            function renderAPIs(category) { apiList.innerHTML = ""; apis[category].forEach((api, i) => { const card = document.createElement("div"); card.className = "api-card fade-in"; card.style.animationDelay = `${i * 0.1}s`; let sC = ""; if (api.status.toLowerCase().includes("maintenance")) sC = "danger"; else if (api.status.toLowerCase().includes("beta")) sC = "warning"; card.innerHTML = ` <div class="api-info"> <h3>${api.name}</h3> <p>${api.desc}</p> <span class="status ${sC}">${api.status}</span> </div> <button class="play-button" data-endpoint="${api.path}" data-api="${api.name}" data-desc="${api.desc}"> <i class="fa-solid fa-play"></i> Try it now </button> `; apiList.appendChild(card); }); }
+
+            // --- Notification Function ---
+            let notificationTimeout;
+            function showNotification(message, type = 'info') {
+                const notification = document.getElementById('notification');
+                if (!notification) return;
+                clearTimeout(notificationTimeout);
+                notification.textContent = message;
+                notification.className = 'notification'; // Reset class
+                if (type) notification.classList.add(type); // Add type class
+                notification.classList.add('show');
+                notificationTimeout = setTimeout(() => { notification.classList.remove('show'); }, 3000);
+            }
+
+            // Main Click Listener
+            document.addEventListener("click", (e) => {
+              // Play Button Click
+              if (e.target.closest(".play-button") && !e.target.closest("#donationModal") && !e.target.closest(".products-section")) {
+                const btn = e.target.closest(".play-button"); const endpointPathFromSettings = btn.getAttribute("data-endpoint"); const api = btn.getAttribute("data-api"); const desc = btn.getAttribute("data-desc"); const paramForm = document.getElementById("paramForm"); const submitBtn = document.getElementById("submitParamBtn"); const modal = document.getElementById("apiResponseModal"); const copyResponseButton = document.getElementById("copyResponseBtn");
+                document.getElementById("apiResponseContent").textContent = ""; document.getElementById("apiResponseContent").classList.add("d-none"); document.getElementById("apiResponseLoading").style.display = "none"; paramForm.innerHTML = ""; submitBtn.style.display = "none"; copyResponseButton.classList.add("d-none");
+                currentEndpointPath = endpointPathFromSettings;
+                currentEndpointRequiresApiKey = endpointPathFromSettings.includes("apikey=");
+                document.querySelector("#apiResponseModal .modal-dialog h5").innerText = api; document.querySelector("#apiResponseModal .modal-dialog span").innerText = desc; const copySection = document.querySelector("#apiResponseModal .copy-section"); const copyTextElement = document.getElementById("copyEndpointText"); let displayEndpointForCopy = endpointPathFromSettings.split('?')[0]; const hasQueryParams = endpointPathFromSettings.includes("?"); const copyParams = [];
+                if (hasQueryParams) { const queryParams = endpointPathFromSettings.split("?")[1].split("&"); queryParams.forEach(param => { const [key, value] = param.split("="); if (key.toLowerCase() === 'apikey') { paramForm.innerHTML += `<label for="apikey">Apikey</label><input type="text" id="apikey" name="apikey" value="${value || ""}" placeholder="Enter your API key..." required />`; } else { paramForm.innerHTML += `<label for="${key}">${key.charAt(0).toUpperCase() + key.slice(1)}</label><input type="text" id="${key}" name="${key}" value="${value || ""}" placeholder="Enter ${key}..." required />`; copyParams.push(`${key}=`); } }); if (copyParams.length > 0) { displayEndpointForCopy += "?" + copyParams.join('&'); } if (currentEndpointRequiresApiKey) { displayEndpointForCopy += (copyParams.length > 0 ? '&' : '?') + 'apikey='; } if (paramForm.innerHTML !== "") { submitBtn.style.display = "block"; } } else { fetchAPI(currentEndpointPath); }
+                if (paramForm.innerHTML !== "") { copyTextElement.innerText = window.location.origin + displayEndpointForCopy; copySection.classList.add("active"); modal.classList.add("active"); } else { copySection.classList.remove("active"); }
+              }
+              // Copy URL Button Click
+              if (e.target.closest(".copy-button") && !e.target.closest("#copyResponseBtn")) { const textToCopy = document.getElementById("copyEndpointText").innerText; navigator.clipboard.writeText(textToCopy).then(() => { const copyBtn = e.target.closest(".copy-button"); copyBtn.innerHTML = '<i class="fas fa-check"></i> URL Copied!'; setTimeout(() => { copyBtn.innerHTML = '<i class="far fa-copy"></i> Copy URL'; }, 2000); }); }
+            });
+
+            // Submit Parameters Function
+            function submitParams() {
+                const form = document.getElementById("paramForm");
+                const apikeyInput = form.querySelector('#apikey');
+                if (currentEndpointRequiresApiKey && apikeyInput && !apikeyInput.value.trim()) { showNotification("API Key wajib diisi!", 'error'); return; }
+                if (form.innerHTML !== "" && !form.checkValidity()) { form.reportValidity(); return; }
+                form.style.display = "none"; document.getElementById("submitParamBtn").style.display = "none"; document.getElementById("apiResponseContent").textContent = ""; document.getElementById("apiResponseContent").classList.add("d-none"); document.getElementById("copyResponseBtn").classList.add("d-none"); document.getElementById("apiResponseLoading").style.display = "block"; const inputs = document.querySelectorAll("#paramForm input"); const query = Array.from(inputs).map(input => `${input.name}=${encodeURIComponent(input.value)}`); const pathWithoutParams = currentEndpointPath.split("?")[0]; const finalURL = `${pathWithoutParams}${query.length > 0 ? '?' + query.join("&") : ''}`; console.log("Fetching URL:", finalURL); fetchAPI(finalURL);
+            }
+            document.getElementById("submitParamBtn").addEventListener("click", submitParams);
+
+            // Fetch API Function
+            function fetchAPI(finalURLToFetch) {
+                const fullURL = finalURLToFetch.startsWith('/') ? window.location.origin + finalURLToFetch : finalURLToFetch;
+                const responseEl = document.getElementById("apiResponseContent"); const loadingEl = document.getElementById("apiResponseLoading"); const urlsSection = document.querySelector("#apiResponseModal .copy-section"); const modal = document.getElementById("apiResponseModal"); const copyResponseButton = document.getElementById("copyResponseBtn");
+                if (!modal.classList.contains('active')){ modal.classList.add("active"); } loadingEl.style.display = "block"; responseEl.classList.add("d-none"); copyResponseButton.classList.add("d-none"); responseEl.innerHTML = "";
+                if (urlsSection.classList.contains('active')) { document.getElementById("copyEndpointText").innerText = fullURL; }
+                fetch(fullURL)
+                .then(async res => {
+                    loadingEl.style.display = "none"; let hasContentToCopy = false; const contentType = res.headers.get("content-type");
+                    if (!res.ok) { let errorBody = `HTTP error! Status: ${res.status}`; try { const errorText = await res.text(); try { const errorJson = JSON.parse(errorText); errorBody = JSON.stringify(errorJson, null, 2); } catch (e) { errorBody = errorText; } } catch (e) {} throw new Error(errorBody); }
+                    if (contentType && contentType.includes("application/json")) { const data = await res.json(); responseEl.textContent = JSON.stringify(data, null, 2); hasContentToCopy = true; } else if (contentType && contentType.startsWith("image/")) { const blob = await res.blob(); const imgUrl = URL.createObjectURL(blob); responseEl.innerHTML = `<img src="${imgUrl}" alt="API Response" style="max-width: 100%; max-height: 300px; border-radius: 4px;" />`; hasContentToCopy = true; } else { try { const text = await res.text(); try { const jsonData = JSON.parse(text); responseEl.textContent = JSON.stringify(jsonData, null, 2); hasContentToCopy = true; } catch (jsonError) { responseEl.textContent = text.substring(0, 1000); if(text.trim()) hasContentToCopy = true; } } catch (textError) { responseEl.textContent = "Error fetching response text: " + textError.message; hasContentToCopy = true; } } responseEl.classList.remove("d-none"); if(hasContentToCopy) { copyResponseButton.classList.remove("d-none"); copyResponseButton.innerHTML = '<i class="far fa-copy"></i> Copy Response'; }
+                })
+                .catch(err => {
+                    loadingEl.style.display = "none"; responseEl.classList.remove("d-none");
+                    const errorMessage = err.message || "Request failed";
+                    responseEl.textContent = "Fetch Error:\n" + errorMessage;
+                    copyResponseButton.classList.remove("d-none"); copyResponseButton.innerHTML = '<i class="far fa-copy"></i> Copy Response';
+                    showNotification("Request Gagal: " + errorMessage.substring(0, 100), 'error');
+                    console.error("Fetch Error:", err);
+                });
+            }
+
+            // Close Modal Logic
+            const closeBtn = document.getElementById("btn-close"); if (closeBtn) { closeBtn.addEventListener("click", () => { const modal = document.getElementById("apiResponseModal"); const urlsSection = document.querySelector("#apiResponseModal .copy-section"); const copyResponseButton = document.getElementById("copyResponseBtn"); modal.classList.remove("active"); document.getElementById("apiResponseContent").classList.add("d-none"); document.getElementById("apiResponseContent").textContent = ""; document.getElementById("paramForm").style.display = "block"; document.getElementById("submitParamBtn").style.display = "none"; urlsSection.classList.remove("active"); copyResponseButton.classList.add("d-none"); document.getElementById("apiResponseLoading").style.display = "none"; }); }
+
+            // Tab Switching Logic
+            tabsContainer.addEventListener("click", (e) => { if (e.target.classList.contains("tab")) { document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active")); e.target.classList.add("active"); renderAPIs(e.target.dataset.tab); } });
+
+            // Close Modal on Outside Click
+            document.getElementById("apiResponseModal").addEventListener("click", (e) => { if (e.target === document.getElementById("apiResponseModal")) { closeBtn.click(); } });
+
+            // Copy Response Button Listener
+            const copyResponseButton = document.getElementById("copyResponseBtn"); if (copyResponseButton) { copyResponseButton.addEventListener("click", () => { const responseElement = document.getElementById("apiResponseContent"); let textToCopy = ""; let feedbackText = "Response Copied!"; const imgElement = responseElement.querySelector('img'); if (imgElement) { textToCopy = imgElement.src; feedbackText = "Image URL Copied!"; } else { textToCopy = responseElement.textContent; } if (textToCopy) { navigator.clipboard.writeText(textToCopy) .then(() => { copyResponseButton.innerHTML = `<i class="fas fa-check"></i> ${feedbackText}`; setTimeout(() => { copyResponseButton.innerHTML = '<i class="far fa-copy"></i> Copy Response'; }, 2000); showNotification(feedbackText, 'success'); }) .catch(err => { console.error("Failed to copy response: ", err); copyResponseButton.innerHTML = '<i class="fas fa-times"></i> Copy Failed'; setTimeout(() => { copyResponseButton.innerHTML = '<i class="far fa-copy"></i> Copy Response'; }, 2000); showNotification("Gagal menyalin!", 'error'); }); } }); }
+
+            // Initial Render
+            renderAPIs(Object.keys(apis)[0]);
+        }
+
+        // Load settings when DOM is ready
+        document.addEventListener("DOMContentLoaded", loadSettings);
+    </script>
+</body>
+</html>
