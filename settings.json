@@ -272,66 +272,66 @@
       "path": "/imagecreator/brat?apikey=&text="
     }
   ],
-      "games": [ // Kategori baru
+      "games": [
       {
         "name": "Asah Otak",
         "desc": "Kuis asah otak acak",
         "status": "Active",
-        "path": "/games/asahotak?apikey=" // Path diubah + apikey
+        "path": "/games/asahotak?apikey="
       },
       {
         "name": "Cak Lontong",
         "desc": "Kuis Cak Lontong acak",
         "status": "Active",
-        "path": "/games/caklontong?apikey=" // Path diubah + apikey
+        "path": "/games/caklontong?apikey="
       },
       {
         "name": "Cerdas Cermat SD",
         "desc": "Kuis cerdas cermat SD berdasarkan mapel",
         "status": "Active",
-        "path": "/games/cc-sd?apikey=&matapelajaran=&jumlahsoal=" // Path diubah + apikey
+        "path": "/games/cc-sd?apikey=&matapelajaran=&jumlahsoal="
       },
       {
         "name": "Lengkapi Kalimat",
         "desc": "Kuis melengkapi kalimat acak",
         "status": "Active",
-        "path": "/games/lengkapikalimat?apikey=" // Path diubah + apikey
+        "path": "/games/lengkapikalimat?apikey="
       },
       {
         "name": "Matematika",
         "desc": "Soal matematika acak berdasarkan level",
         "status": "Active",
-        "path": "/games/maths?apikey=&level=" // Path diubah + apikey
+        "path": "/games/maths?apikey=&level="
       },
       {
         "name": "Susun Kata",
         "desc": "Kuis susun kata acak",
         "status": "Active",
-        "path": "/games/susunkata?apikey=" // Path diubah + apikey
+        "path": "/games/susunkata?apikey="
       },
       {
         "name": "Tebak Bendera",
         "desc": "Kuis tebak bendera negara acak",
         "status": "Active",
-        "path": "/games/tebakbendera?apikey=" // Path diubah + apikey
+        "path": "/games/tebakbendera?apikey="
       },
       {
         "name": "Tebak Gambar",
         "desc": "Kuis tebak gambar acak",
         "status": "Active",
-        "path": "/games/tebakgambar?apikey=" // Path diubah + apikey
+        "path": "/games/tebakgambar?apikey="
       },
       {
         "name": "Tebak Game",
         "desc": "Kuis tebak nama game acak",
         "status": "Active",
-        "path": "/games/tebakgame?apikey=" // Path diubah + apikey
+        "path": "/games/tebakgame?apikey="
       },
       {
         "name": "Tebak Tebakan",
         "desc": "Teka-teki atau tebak-tebakan acak",
         "status": "Active",
-        "path": "/games/tebaktebakan?apikey=" // Path diubah + apikey
+        "path": "/games/tebaktebakan?apikey="
       }
     ],
 
